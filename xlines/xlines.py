@@ -6,7 +6,7 @@ import numpy as np
 
 class XLines(object):
     
-    def __init__(self, candidates, verbose=2):
+    def __init__(self, candidates, metric="silhouette", verbose=2):
         """
         Initialize a XLines object
         candidates : array-like, list of candidate k for which we will try to 
@@ -14,9 +14,14 @@ class XLines(object):
         """
         self.candidates = candidates
         self.n_candidates = len(candidates)
+        self.metric = metric
         self.models = None
         self.verbose = verbose
         self._scores = None
+
+        # check inputs
+        if not(metric in ["silhouette", "CH"]):
+            raise ValueError("metric should be 'silhouette' or 'CH'")
 
 
     def fit(self, X, alpha0=0., init_alpha="one", max_iter=10, tol=0.001):
@@ -41,7 +46,7 @@ class XLines(object):
 
         # initialize models
         sub_verbose = max(0, self.verbose-1)
-        self.models = dict((k, KLines(k, verbose=sub_verbose)) for k in self.candidates)
+        self.models = dict((k, KLines(k, metric=self.metric, verbose=sub_verbose)) for k in self.candidates)
 
         # alpha_initializations
         if init_alpha is None or init_alpha == "update":

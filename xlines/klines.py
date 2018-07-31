@@ -1,18 +1,19 @@
 import utils
 import numpy as np
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, calinski_harabaz_score
 
 
 class KLines(object):
     
-    def __init__(self, n_components, verbose=2):
+    def __init__(self, n_components, metric="silhouette", verbose=2):
         """
         Initialize the KLines object
         n_components : int, number of lines to fit
         """
         self.alpha = None
-        self.n_components= n_components
+        self.n_components = n_components
+        self.metric = metric
         self.verbose = verbose
         
         self._labels = None
@@ -21,7 +22,11 @@ class KLines(object):
 
         self.score_ = None
 
-        
+        # check inputs
+        if not(metric in ["silhouette", "CH"]):
+            raise ValueError("metric should be 'silhouette' or 'CH'")
+
+
     def _cluster(self, X, alpha, store, verbose):
         """
         X : array-like, shape (n_samples, n_features)
@@ -127,6 +132,11 @@ class KLines(object):
         Silhouette score of the KMeans clustering on the projected axis
         """
         if self.score_ is None and self._labels is not None:
-            self.score_ = silhouette_score(self._Xprojected, self._labels, metric="euclidean")
+            if self.metric == "CH":
+                self.score_ = calinski_harabaz_score(self._Xprojected, self._labels)
+            elif self.metric == "silhouette":
+                self.score_ = silhouette_score(self._Xprojected, self._labels, metric="euclidean")
+            else:
+                self.score_ = None
         return self.score_
 
