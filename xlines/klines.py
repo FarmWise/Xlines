@@ -16,6 +16,7 @@ class KLines(object):
         self.verbose = verbose
         
         self._labels = None
+        self._centers = None
         self._Xprojected = None
 
         self.score_ = None
@@ -43,6 +44,9 @@ class KLines(object):
         if store:
             self._labels = labels
             self._Xprojected = projX
+            projCenters = np.zeros((self.n_components, 2))
+            projCenters[:,1] = alg.cluster_centers_[:,0]
+            self._centers = np.dot(R.T, projCenters.T).T
         
         if verbose:
             print("Kmeans w/ proj {}: {}".format(utils.rad2deg(alpha), score))
@@ -113,7 +117,7 @@ class KLines(object):
             n_iter += 1
 
         if alpha_diff > tol:
-            print("Warning: fit did not converge but maximum number of iteration reached.")
+            print("[Warning KLines {}] Fit did not converge but maximum number of iteration reached".format(self.n_components))
         
         return self.alpha
 
