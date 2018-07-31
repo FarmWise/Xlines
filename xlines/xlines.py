@@ -30,7 +30,8 @@ class XLines(object):
         Returns : (best_model, best_k)
         """
 
-        self.models = dict((k, KLines(k, verbose=self.verbose-1)) for k in self.candidates)
+        sub_verbose = max(0, self.verbose-1)
+        self.models = dict((k, KLines(k, verbose=sub_verbose)) for k in self.candidates)
         self._scores = []
 
         for k, model in self.models.iteritems():
