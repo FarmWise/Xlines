@@ -1,0 +1,7 @@
+*.pyc
+
+# Jupyter notebook
+.ipynb_checkpoints/*
+
+# Scratch folder
+scratch/*
