@@ -73,10 +73,12 @@ class XLines(object):
             max_iterations = max_iter
 
         # fit a KLines model for each candidate k
-        for idx, (k, model) in enumerate(self.models.iteritems()):
+        for idx, k in enumerate(self.candidates):
+
             if self.verbose > 1:
                 print("-Test {} components".format(k))
 
+            model = self.models[k]
             model.fit(X, alpha0, alpha_initializations[idx], max_iterations[idx], tol)
             self._scores.append(model.score())
 

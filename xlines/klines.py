@@ -44,7 +44,7 @@ class KLines(object):
         alg = KMeans(n_clusters=self.n_components)
         alg.fit(projX)
         labels = alg.predict(projX)
-        score = alg.score(projX)
+        score = -alg.inertia_ # alg.score(projX)
         
         if store:
             self._labels = labels
@@ -121,7 +121,7 @@ class KLines(object):
             alpha_diff = self._fit_step(X)
             n_iter += 1
 
-        if alpha_diff > tol:
+        if alpha_diff > tol and self.verbose:
             print("[Warning KLines {}] Fit did not converge but maximum number of iteration reached".format(self.n_components))
         
         return self.alpha
