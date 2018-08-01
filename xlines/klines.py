@@ -9,7 +9,11 @@ class KLines(object):
     def __init__(self, n_components, metric="silhouette", verbose=2):
         """
         Initialize the KLines object
+
+        Parameters
+        ---
         n_components : int, number of lines to fit
+        metric : ther metric to use for scoring, either 'silhouette' or 'CH'
         """
         self.alpha = None
         self.n_components = n_components
@@ -29,9 +33,18 @@ class KLines(object):
 
     def _cluster(self, X, alpha, store, verbose):
         """
+        Project data X on the normal direction and cluster with KMeans
+
+        Parameters
+        ---
         X : array-like, shape (n_samples, n_features)
         alpha : float, orientation to project
         store : boolean, if True store the projection and cluster labels
+
+        Returns
+        ---
+        labels : the list of cluster index in the same order as X
+        score : opposite of the clustering inertia (higher the better)
         """
         R = utils.rotation_matrix(-alpha)
         rotX = np.dot(R, X.T).T
@@ -62,7 +75,14 @@ class KLines(object):
     def _init_alpha(self, X):
         """
         Initialization step to guess the best alpha0
+
+        Parameters
+        ---
         X : array-like, shape (n_samples, n_features)
+
+        Returns
+        ---
+        alpha : selected orientation
         """
         alphas = [utils.deg2rad(a) for a in range(-80, 90, 40)]
         _, scores = zip(*[self._cluster(X, a, store=False, verbose=0) for a in alphas])
@@ -77,7 +97,14 @@ class KLines(object):
     def _fit_step(self, X):
         """
         One step of the fitting algorithm: project, cluster, update alpha
+
+        Parameters
+        ---
         X : array-like, shape (n_samples, n_features)
+
+        Returns
+        ---
+        alpha_diff : orientation update
         """
         
         labels, score = self._cluster(X, self.alpha, store=True, verbose=self.verbose)
@@ -96,14 +123,19 @@ class KLines(object):
     def fit(self, X, alpha0=0., init_alpha=True, max_iter=10, tol=0.001):
         """
         Fitting algorithm: cluster data X in K lines
+
+        Parameters
+        ---
         X : array-like, shape (n_samples, n_features)
         alpha0 : float, initial value for alpha if init_alpha is False
         init_alpha : boolean, if True test a few alpha0  and initialize 
             the iterations with the best one
         max_iter : int, maximum number of iteration
         tol : float, tolerance to stop convergence
+
+        Returns
         ---
-        Returns : orientation alpha in radians
+        alpha : orientation in radians
         """
 
         # initialize alpha

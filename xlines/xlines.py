@@ -9,8 +9,11 @@ class XLines(object):
     def __init__(self, candidates, metric="silhouette", verbose=2):
         """
         Initialize a XLines object
-        candidates : array-like, list of candidate k for which we will try to 
-            fit a KLines
+
+        Parameters
+        ---
+        candidates : array-like, list of candidate k for which we will try to fit a KLines
+        metric : ther metric to use for scoring, either 'silhouette' or 'CH'
         """
         self.candidates = candidates
         self.n_candidates = len(candidates)
@@ -27,6 +30,9 @@ class XLines(object):
     def fit(self, X, alpha0=0., init_alpha="one", max_iter=10, tol=0.001):
         """
         Fitting algorithm: fit a KLines on X for each candidate k
+
+        Parameters
+        ---
         X : array-like, shape (n_samples, n_features)
         alpha0 : float, initial value for alpha if init_alpha is None or "update"
         init_alpha : {None, "one", "all", "update"}, if not None test a few alpha0 and 
@@ -37,8 +43,11 @@ class XLines(object):
             updated alpha0.
         max_iter : int or array-like, maximum number of iteration
         tol : float, tolerance to stop convergence
+
+        Returns
         ---
-        Returns : (best_model, best_k)
+        best_model : a fitted KLines model that corresponds to the highest score
+        best_k : the candidate k yielding the best model
         """
 
         # reset scores
