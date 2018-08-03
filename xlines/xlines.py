@@ -27,7 +27,7 @@ class XLines(object):
             raise ValueError("metric should be 'silhouette' or 'CH'")
 
 
-    def fit(self, X, alpha0=0., init_alpha="one", max_iter=10, tol=0.001):
+    def fit(self, X, alpha0=0., init_alpha="one", max_iter=10, tol=0.001, clustering_n_init=3):
         """
         Fitting algorithm: fit a KLines on X for each candidate k
 
@@ -43,6 +43,8 @@ class XLines(object):
             updated alpha0.
         max_iter : int or array-like, maximum number of iteration
         tol : float, tolerance to stop convergence
+        clustering_n_init : int, number of times the KMeans algorithms will
+            be run with different centroid seeds (n_init for KMeans)
 
         Returns
         ---
@@ -88,7 +90,10 @@ class XLines(object):
                 print("-Test {} components".format(k))
 
             model = self.models[k]
-            model.fit(X, alpha0, alpha_initializations[idx], max_iterations[idx], tol)
+            model.fit(
+                X, alpha0=alpha0, init_alpha=alpha_initializations[idx], 
+                max_iter=max_iterations[idx], tol=tol, clustering_n_init=clustering_n_init
+            )
             self._scores.append(model.score())
 
              # update_alpha0 after the first candidate if necessary

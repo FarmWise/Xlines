@@ -24,6 +24,7 @@ class KLines(object):
         self._centers = None
         self._Xprojected = None
 
+        self.clustering_n_init_ = None
         self.score_ = None
 
         # check inputs
@@ -54,7 +55,7 @@ class KLines(object):
             plt.show()
         
         projX = rotX[:,1].reshape((-1,1))
-        alg = KMeans(n_clusters=self.n_components)
+        alg = KMeans(n_clusters=self.n_components, n_init=self.clustering_n_init_)
         alg.fit(projX)
         labels = alg.predict(projX)
         score = -alg.inertia_ # alg.score(projX)
@@ -65,7 +66,7 @@ class KLines(object):
             projCenters = np.zeros((self.n_components, 2))
             projCenters[:,1] = alg.cluster_centers_[:,0]
             self._centers = np.dot(R.T, projCenters.T).T
-        
+
         if verbose:
             print("Kmeans w/ proj {}: {}".format(utils.rad2deg(alpha), score))
         
@@ -120,7 +121,7 @@ class KLines(object):
         return alpha_diff
 
 
-    def fit(self, X, alpha0=0., init_alpha=True, max_iter=10, tol=0.001):
+    def fit(self, X, alpha0=0., init_alpha=True, max_iter=10, tol=0.001, clustering_n_init=3):
         """
         Fitting algorithm: cluster data X in K lines
 
@@ -132,11 +133,17 @@ class KLines(object):
             the iterations with the best one
         max_iter : int, maximum number of iteration
         tol : float, tolerance to stop convergence
+        clustering_n_init : int, number of times the KMeans algorithms will
+            be run with different centroid seeds (n_init for KMeans)
 
         Returns
         ---
         alpha : orientation in radians
         """
+
+        # init
+        self.score_ = None
+        self.clustering_n_init_ = clustering_n_init
 
         # initialize alpha
         if init_alpha:
@@ -144,9 +151,7 @@ class KLines(object):
         else:
             self.alpha = alpha0
 
-        # reset score
-        self.score_ = None
-        
+
         alpha_diff = 100. + tol # something larger than tol
         n_iter = 0
         while(alpha_diff > tol and n_iter < max_iter):
@@ -155,13 +160,13 @@ class KLines(object):
 
         if alpha_diff > tol and self.verbose:
             print("[Warning KLines {}] Fit did not converge but maximum number of iteration reached".format(self.n_components))
-        
+
         return self.alpha
 
 
     def score(self):
         """
-        Silhouette score of the KMeans clustering on the projected axis
+        Score of the KMeans clustering on the projected axis
         """
         if self.score_ is None and self._labels is not None:
             if self.metric == "CH":
