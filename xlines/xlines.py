@@ -20,14 +20,18 @@ class XLines(object):
         self.metric = metric
         self.models = None
         self.verbose = verbose
+
         self._scores = None
+
+        self.best_k_ = None
+        self.best_model_ = None
 
         # check inputs
         if not(metric in ["silhouette", "CH"]):
             raise ValueError("metric should be 'silhouette' or 'CH'")
 
 
-    def fit(self, X, alpha0=0., init_alpha="one", max_iter=10, tol=0.001, clustering_n_init=3):
+    def fit(self, X, alpha0=0., init_alpha="one", max_iter=10, tol=0.001, clustering_n_init=3, clustering_init="estimate"):
         """
         Fitting algorithm: fit a KLines on X for each candidate k
 
@@ -45,6 +49,9 @@ class XLines(object):
         tol : float, tolerance to stop convergence
         clustering_n_init : int, number of times the KMeans algorithms will
             be run with different centroid seeds (n_init for KMeans)
+        clustering_init : {'estimate' or 'k-means++'}, initialization method
+            for KMeans. 'k-means++' is the standard for KMeans while 'estimate'
+            will use the centroids from the previous step
 
         Returns
         ---
@@ -91,8 +98,8 @@ class XLines(object):
 
             model = self.models[k]
             model.fit(
-                X, alpha0=alpha0, init_alpha=alpha_initializations[idx], 
-                max_iter=max_iterations[idx], tol=tol, clustering_n_init=clustering_n_init
+                X, alpha0=alpha0, init_alpha=alpha_initializations[idx], max_iter=max_iterations[idx], 
+                tol=tol, clustering_n_init=clustering_n_init, clustering_init=clustering_init
             )
             self._scores.append(model.score())
 
@@ -102,13 +109,31 @@ class XLines(object):
                 update_alpha0 = False
 
         # select best model
-        best_k = self.candidates[np.argmax(self._scores)]
-        best_model = self.models[best_k]
-        
+        self.best_k_ = self.candidates[np.argmax(self._scores)]
+        self.best_model_ = self.models[self.best_k_]
+
         if self.verbose:
             print("-Results:")
             print("Candidate scores: {}".format(self._scores))
             print("Best model with {} components".format(best_k))
             print("Best model with orientation: {:.2f}".format(utils.rad2deg(best_model.alpha)))
             
-        return best_model, best_k
+        return self.best_model_, self.best_k_
+
+
+    def predict(self, X):
+        """
+        Predict the closest cluster each sample in X belongs to
+
+        Parameters
+        ---
+        X : array-like, shape (n_samples, n_features)
+
+        Returns
+        ---
+        labels : array, index of the cluster each sample belongs to
+        """
+        if self.best_model_ is None:
+            raise RuntimeError("Model needs to be fitted first")
+
+        return self.best_model_.predict(X)

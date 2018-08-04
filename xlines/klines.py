@@ -25,6 +25,7 @@ class KLines(object):
         self._Xprojected = None
 
         self.clustering_n_init_ = None
+        self.clustering_init_ = None
         self.score_ = None
 
         # check inputs
@@ -49,20 +50,32 @@ class KLines(object):
         """
         R = utils.rotation_matrix(-alpha)
         rotX = np.dot(R, X.T).T
+        projX = rotX[:,1].reshape((-1,1))
 
         if verbose > 1:
             plt.scatter(rotX[:,0], rotX[:,1])
             plt.show()
-        
-        projX = rotX[:,1].reshape((-1,1))
-        alg = KMeans(n_clusters=self.n_components, n_init=self.clustering_n_init_)
+
+
+        if self.clustering_init_ == "estimate" and self._centers is not None:
+            init_centers = np.dot(R, self._centers.T).T
+            init_centers = init_centers[:,1].reshape(-1, 1)
+            n_init = 1
+        else:
+            init_centers = "k-means++"
+            n_init = self.clustering_n_init_
+
+        alg = KMeans(n_clusters=self.n_components, init=init_centers, n_init=n_init)
         alg.fit(projX)
         labels = alg.predict(projX)
         score = -alg.inertia_ # alg.score(projX)
-        
+
+
         if store:
             self._labels = labels
             self._Xprojected = projX
+        
+        if self.clustering_init_ == "estimate" or store:
             projCenters = np.zeros((self.n_components, 2))
             projCenters[:,1] = alg.cluster_centers_[:,0]
             self._centers = np.dot(R.T, projCenters.T).T
@@ -112,8 +125,9 @@ class KLines(object):
 
         orientations = []
         for c in xrange(self.n_components):
-            a = utils.pca_orientation(X[labels == c,:])
-            orientations.append(a)
+            if np.sum(labels == c) > 1:
+                a = utils.pca_orientation(X[labels == c,:])
+                orientations.append(a)
 
         alpha = np.mean(orientations)
         alpha_diff = abs(alpha-self.alpha)
@@ -121,7 +135,7 @@ class KLines(object):
         return alpha_diff
 
 
-    def fit(self, X, alpha0=0., init_alpha=True, max_iter=10, tol=0.001, clustering_n_init=3):
+    def fit(self, X, alpha0=0., init_alpha=True, max_iter=10, tol=0.001, clustering_n_init=3, clustering_init="estimate"):
         """
         Fitting algorithm: cluster data X in K lines
 
@@ -135,6 +149,9 @@ class KLines(object):
         tol : float, tolerance to stop convergence
         clustering_n_init : int, number of times the KMeans algorithms will
             be run with different centroid seeds (n_init for KMeans)
+        clustering_init : {'estimate' or 'k-means++'}, initialization method
+            for KMeans. 'k-means++' is the standard for KMeans while 'estimate'
+            will use the centroids from the previous step
 
         Returns
         ---
@@ -142,8 +159,13 @@ class KLines(object):
         """
 
         # init
+        X = np.asarray(X)
         self.score_ = None
         self.clustering_n_init_ = clustering_n_init
+        self.clustering_init_ = clustering_init
+        if not(self.clustering_init_ in ["k-means++", "estimate"]):
+            raise ValueError("clustering_init should be either 'k-means++' or 'estimate' - got {} instead".format(clustering_init))
+
 
         # initialize alpha
         if init_alpha:
@@ -177,3 +199,27 @@ class KLines(object):
                 self.score_ = None
         return self.score_
 
+
+    def predict(self, X):
+        """
+        Predict the closest cluster each sample in X belongs to
+
+        Parameters
+        ---
+        X : array-like, shape (n_samples, n_features)
+
+        Returns
+        ---
+        labels : array, index of the cluster each sample belongs to
+        """
+
+        if self._centers is None:
+            raise RuntimeError("Model needs to be fitted first")
+
+        R = utils.rotation_matrix(-self.alpha)
+        projX = (np.dot(R, np.asarray(X).T).T)[:,1]
+        projCentroids = (np.dot(R, self._centers.T).T)[:,1]
+
+        labels = [np.argmin([abs(x - c) for c in projCentroids]) for x in projX]
+
+        return labels
