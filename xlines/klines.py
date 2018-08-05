@@ -1,4 +1,4 @@
-import utils
+from . import utils
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, calinski_harabaz_score
@@ -109,7 +109,7 @@ class KLines(object):
             self.centroids_ = np.dot(R.T, projCenters.T).T
 
         if verbose:
-            print("Kmeans w/ proj {}: {}".format(utils.rad2deg(alpha), score))
+            print("Kmeans w/ proj {:.2f}: {:.2f}".format(utils.rad2deg(alpha), score))
         
         return labels, score
 

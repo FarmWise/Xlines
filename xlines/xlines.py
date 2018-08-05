@@ -1,6 +1,6 @@
 
-from klines import KLines
-import utils
+from . import utils
+from .klines import KLines
 import numpy as np
 
 
