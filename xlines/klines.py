@@ -33,6 +33,8 @@ class KLines(object):
         alpha_ : line orientation in radians
         labels_ : labels (cluster index) of each training points
         centroids_ : coordinates of the cluster centers
+        projected_centroids_ : coordinates of the cluster centers on the axis 
+            orthogonal to the lines
         n_iter_ : number of iterations needed to fit the algorithm
         score_ : a score to evaluate the training data clustering
         """
@@ -49,6 +51,7 @@ class KLines(object):
         self.alpha__ = None
         self.labels_ = None
         self.centroids_ = None
+        self.projected_centroids_ = None
         self.n_iter_ = None
         self.score_ = None
 
@@ -104,8 +107,9 @@ class KLines(object):
             self._Xprojected = projX
         
         if self.clustering_init == "estimate" or store:
+            self.projected_centroids_ = alg.cluster_centers_[:,0]
             projCenters = np.zeros((self.n_components, 2))
-            projCenters[:,1] = alg.cluster_centers_[:,0]
+            projCenters[:,1] = self.projected_centroids_
             self.centroids_ = np.dot(R.T, projCenters.T).T
 
         if verbose:
