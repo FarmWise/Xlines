@@ -106,7 +106,7 @@ class XLines(object):
         # fit a KLines model for each candidate k
         for idx, k in enumerate(self.candidates):
             if self.verbose > 1:
-                print("-Test {} components".format(k))
+                print(("-Test {} components".format(k)))
 
             model = KLines(k, 
                 alpha0=self._alpha0, init_alpha=alpha_initializations[idx], 
@@ -129,9 +129,9 @@ class XLines(object):
 
         if self.verbose:
             print("-Results:")
-            print("Candidate scores: {}".format(self.scores_))
-            print("Best model with {} components".format(self.best_k_))
-            print("Best model with orientation: {:.2f}".format(utils.rad2deg(self.best_model_.alpha_)))
+            print(("Candidate scores: {}".format(self.scores_)))
+            print(("Best model with {} components".format(self.best_k_)))
+            print(("Best model with orientation: {:.2f}".format(utils.rad2deg(self.best_model_.alpha_))))
             
         return self.best_model_, self.best_k_
 

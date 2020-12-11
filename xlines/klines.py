@@ -113,7 +113,7 @@ class KLines(object):
             self.centroids_ = np.dot(R.T, projCenters.T).T
 
         if verbose:
-            print("Kmeans w/ proj {:.2f}: {:.2f}".format(utils.rad2deg(alpha), score))
+            print(("Kmeans w/ proj {:.2f}: {:.2f}".format(utils.rad2deg(alpha), score)))
         
         return labels, score
 
@@ -131,11 +131,11 @@ class KLines(object):
         alpha : selected orientation
         """
         alphas = [utils.deg2rad(a) for a in range(-80, 90, 40)]
-        _, scores = zip(*[self._cluster(X, a, store=False, verbose=0) for a in alphas])
+        _, scores = list(zip(*[self._cluster(X, a, store=False, verbose=0) for a in alphas]))
         alpha = alphas[np.argmax(scores)]
         
         if self.verbose:
-            print("Selected alpha={} at init".format(utils.rad2deg(alpha)))
+            print(("Selected alpha={} at init".format(utils.rad2deg(alpha))))
 
         return alpha
 
@@ -156,7 +156,7 @@ class KLines(object):
         labels, score = self._cluster(X, self.alpha_, store=True, verbose=self.verbose)
 
         orientations = []
-        for c in xrange(self.n_components):
+        for c in range(self.n_components):
             if np.sum(labels == c) > 1:
                 a = utils.pca_orientation(X[labels == c,:])
                 orientations.append(a)
@@ -198,7 +198,7 @@ class KLines(object):
             self.n_iter_ += 1
 
         if alpha_diff > self.tol and self.verbose:
-            print("[Warning KLines {}] Fit did not converge but maximum number of iteration reached".format(self.n_components))
+            print(("[Warning KLines {}] Fit did not converge but maximum number of iteration reached".format(self.n_components)))
 
         return self
 

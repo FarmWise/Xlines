@@ -5,7 +5,7 @@ with open("README.md", 'r') as f:
 
 setup(
    name='xlines',
-   version='1.0',
+   version='1.1',
    description='Clustering 2D points in parallel lines',
    license="MIT",
    long_description=long_description,
