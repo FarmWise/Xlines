@@ -2,6 +2,10 @@
 
 *Cluster 2D points in parallel lines*
 
+## Requirements
+
+Python 3.x
+
 ## Installation
 
 Using pip
