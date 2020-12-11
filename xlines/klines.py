@@ -1,7 +1,7 @@
 from . import utils
 import numpy as np
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score, calinski_harabaz_score
+from sklearn.metrics import silhouette_score, calinski_harabasz_score
 
 
 class KLines(object):
@@ -209,7 +209,7 @@ class KLines(object):
         """
         if self.score_ is None and self.labels_ is not None:
             if self.metric == "CH":
-                self.score_ = calinski_harabaz_score(self._Xprojected, self.labels_)
+                self.score_ = calinski_harabasz_score(self._Xprojected, self.labels_)
             elif self.metric == "silhouette":
                 self.score_ = silhouette_score(self._Xprojected, self.labels_, metric="euclidean")
             else:
